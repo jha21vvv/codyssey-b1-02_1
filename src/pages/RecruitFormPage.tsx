@@ -23,7 +23,7 @@ export default function RecruitFormPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(isEdit);
 
- // 기존 글을 가져오는 메커니즘.
+ //기존 데이토 들고 오는 부분
   useEffect(() => {
      //폴스(새글)의 폴스이니. 아래 내용은 새글 등록인경우 자동으로 실행되지 않도록 막음. 트루(수정 등록)인 경우에만 아래 내용이 실행됨
     if (!isEdit) return;
@@ -125,7 +125,7 @@ export default function RecruitFormPage() {
       setSubmitting(false);
     }
   };
-//isEdit이 false(새 글 모드)이므로 "새 테스터 모집 공고 등록"이라는 글자가 뜹니다.
+
   if (loadingDetail) return <Loading message="기존 공고 정보를 불러오는 중입니다..." />;
 
   return (
