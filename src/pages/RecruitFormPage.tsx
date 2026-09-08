@@ -7,8 +7,10 @@ import Button from "../components/Button";
 import Loading from "../components/Loading";
 
 export default function RecruitFormPage() {
+  // react-router-dom에서 글번호를 받아오는게 이게 뉴냐? 번호냐임.useParams()는 브라우저 주소창(URL)에 적힌 정보를 읽어오는 도구임. 뉴면 숫자가 없으니 빈칸이 됨
   const { id } = useParams();
   const navigate = useNavigate();
+  //번호면 트루로 수정, 빈칸은 폴스로 새글 등록
   const isEdit = Boolean(id);
 
   const [formData, setFormData] = useState({
@@ -21,7 +23,9 @@ export default function RecruitFormPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(isEdit);
 
+ // 기존 글을 가져오는 메커니즘.
   useEffect(() => {
+     //폴스(새글)의 폴스이니. 아래 내용은 새글 등록인경우 자동으로 실행되지 않도록 막음. 트루(수정 등록)인 경우에만 아래 내용이 실행됨
     if (!isEdit) return;
 
     const fetchDetail = async () => {
@@ -80,7 +84,7 @@ export default function RecruitFormPage() {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) return; // 검사 성공시 아무일 없이 지나감. 검사 실패시 올스톱후 서브밋자체 함수가 종료됨
 
     try {
       setSubmitting(true);
@@ -121,7 +125,7 @@ export default function RecruitFormPage() {
       setSubmitting(false);
     }
   };
-
+//isEdit이 false(새 글 모드)이므로 "새 테스터 모집 공고 등록"이라는 글자가 뜹니다.
   if (loadingDetail) return <Loading message="기존 공고 정보를 불러오는 중입니다..." />;
 
   return (
@@ -196,3 +200,25 @@ export default function RecruitFormPage() {
     </div>
   );
 }
+
+/*
+[저장 버튼 클릭!]
+       │
+       ▼
+[품질 검사관 검사: validate()]
+  ├── 빵 이름이 비었거나 5글자 미만인가?  👉 "불합격! 빨간 딱지 부착"
+  └── 레시피 설명이 10글자 미만인가?     👉 "불합격! 빨간 딱지 부착"
+       │
+   ┌───┴────────────────────────────┐
+   │ 불합격                         │ 합격 (모든 기준 충족)
+   ▼                                ▼
+[if (!validate()) return;]     [본사 금고 통신 시작]
+  "자격 미달! 작업 즉시 중단!"    setSubmitting(true)
+  (금고 문도 안 열어주고 퇴짜)      (버튼 비활성화)
+                                    │
+                         ┌──────────┴──────────┐
+                         │ 신규 메뉴           │ 기존 메뉴 수정
+                         ▼                     ▼
+                   [insert]              [update]
+                   새 파일철 추가        기존 파일철 내용 덮어쓰기
+*/

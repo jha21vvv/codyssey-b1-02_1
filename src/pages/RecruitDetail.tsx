@@ -21,7 +21,7 @@ export default function RecruitDetail() {
         .from("recruits")
         .select("*")
         .eq("id", id)
-        .single();
+        .single();  //해당 id에 해당하는 단일 레코드만 가져오도록 single()을 사용
 
       if (err) throw err;
       setRecruit(data);
