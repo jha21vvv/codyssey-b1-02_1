@@ -13,7 +13,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 export default function App() {
   return (
     <FilterProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/codyssey-b1-02_1">
         <Suspense fallback={<Loading message="화면을 불러오는 중입니다..." />}>
           <Routes>
             <Route path="/" element={<Layout />}>
