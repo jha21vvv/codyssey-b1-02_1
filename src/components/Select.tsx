@@ -1,4 +1,4 @@
-export default function Select({ label, options = [], error, className = "", ...props }) {
+export default function Select({ label, options = [], error = "", className = "", ...props }) {
   return (
     <div className="flex flex-col gap-1 w-full text-left">
       {label && <label className="text-sm font-semibold text-gray-700">{label}</label>}
