@@ -20,7 +20,7 @@ export default function RecruitList() {
                             item.content?.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesPlatform && matchesSearch;
     });
-  }, [recruits, platformFilter, searchTerm]);
+  }, [recruits, platformFilter, searchTerm]); //<--- 바로 이 대괄호가 "변경 시에만 수행하라"는 코드입니다!
 
   if (loading) return <Loading message="테스터 모집 공고를 불러오는 중입니다..." />;
   if (error) return <ErrorState message={error} onRetry={refetch} />;

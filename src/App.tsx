@@ -3,6 +3,20 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { FilterProvider } from "./context/FilterContext";
 import Layout from "./components/Layout";
 import Loading from "./components/Loading";
+/*
+일반적인 방식: 사용자가 첫 화면만 보려는데도 사이트에 존재하는 모든 페이지(등록폼, 상세페이지, 관리자페이지 등)의 대용량 자바스크립트 코드를 통째로 한 번에 다운로드합니다. 그래서 첫 흰 화면이 오래 멈춰 있습니다.
+lazy 적용: 등록 페이지(RecruitFormPage) 코드는 서버에 남겨두고, 메인 페이지 코드만 초고속으로 다운받아 첫 화면을 즉시 띄웁니다.
+Suspense 적용: 사용자가 메인 페이지에서 상단의 [공고 등록] 링크를 찰칵 클릭하는 순간, 비로소 등록 페이지 코드를 다운로드하기 시작합니다. 그 다운로드 시간(0.1초~0.5초) 동안 화면이 하얗게 멈추거나 튕기지 않도록
+ <Loading message="페이지를 불러오는 중입니다..."/>라는 로딩 팻말을 잠깐 띄워주는 역할을 합니다.
+
+
+1단계: 최소 껍데기만 먼저 다운로드
+브라우저가 사이트에 접속하면 App.tsx와 Layout.tsx 같은 최소한의 뼈대 코드(공통 헤더, 푸터, 내비게이션 바)만 먼저 초고속으로 다운로드합니다.
+이때 Home을 포함한 RecruitList, RecruitFormPage 등 5개 페이지 코드는 아직 하나도 다운받지 않고 서버에 그대로 남아 있습니다.
+2단계: 주소 확인 후 Home 조각 다운로드 요청
+브라우저가 주소창(/)을 확인하고 "첫 화면이 Home이네?"라고 인식합니다.
+그 순간 lazy(() => import("./pages/Home"))가 실행되면서 서버에 Home 파일 조각만 따로 요청합니다.
+*/
 
 const Home = lazy(() => import("./pages/Home"));
 const RecruitList = lazy(() => import("./pages/RecruitList"));
@@ -10,6 +24,34 @@ const RecruitDetail = lazy(() => import("./pages/RecruitDetail"));
 const RecruitFormPage = lazy(() => import("./pages/RecruitFormPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
+/*
+1층: <FilterProvider> (전체 사내 방송망 연결)
+가장 바깥에 있는 이유: 사이트 내의 모든 페이지(홈, 공고 목록, 검색창 등)가 이 검색/필터 방송을 들을 수 있어야 하기 때문입니다. 이 껍질 안에 들어있는 모든 컴포넌트는 "키워드 검색어"나 "플랫폼 선택값"을 공유받습니다.
+사용자가 화면 상단의 검색창(<Input/>)에 "안드로이드"라고 입력하거나, 필터 드롭다운에서 "Android"를 선택합니다. 화면 안에는 검색창 컴포넌트, 공고 카드 리스트 컴포넌트, 검색 결과 개수를 표시하는 텍스트 컴포넌트가 각각 떨어져 있습니다.
+Context API가 없다면: 검색창에서 입력한 "안드로이드"라는 글자를 부모로 올렸다가, 다시 리스트로 내리고, 또 개수 세는 컴포넌트로 내리는 번거로운 귓속말 전달(Props Drilling)을 해야 합니다.
+
+2층: <BrowserRouter> (내비게이션 지도 켜기)
+주소창의 URL(예: /recruits, /recruits/new)을 감시하고, 뒤로 가기나 링크 클릭 시 화면을 전환해 주는 라우팅 엔진을 켭니다.
+3층: <Suspense ... fallback="{<Loading"/>}> (대기실 진동벨 설치)
+앞서 본 lazy로 인해 쪼개진 페이지 조각들을 서버에서 다운로드해 올 때, 네트워크 지연 시간 동안 빈 흰 화면이 뜨지 않도록 <Loading> 진동벨 화면을 보여주는 안전망입니다.
+4층: <Routes>와 <Route element="{<Layout" path="/"/>}> (고정 뼈대 틀 짜기)
+Layout은 상단 헤더(로고, 메뉴)와 하단 푸터처럼 모든 페이지에서 절대 바뀌지 않는 공통 껍데기입니다.
+이 틀을 먼저 잡아두고, 가운데 알맹이 영역만 주소에 따라 바꿔 끼웁니다.
+5층: 내부 알맹이 라우트들 (주소별 내용물 교체)
+사용자가 이동하는 주소(URL)에 맞춰 알맹이 화면을 꽂아줍니다:
+/ ➔ Home (메인 홈)
+/recruits ➔ RecruitList (공고 목록 및 검색)
+/recruits/123 ➔ RecruitDetail (123번 공고 상세 보기)
+/recruits/new ➔ RecruitFormPage (새 공고 등록 폼)
+/recruits/123/edit ➔ RecruitFormPage (123번 공고 수정 폼 - 등록 폼 컴포넌트 재사용)
+그 외 이상한 주소(*) ➔ NotFound (404 에러 페이지)
+export default로 둔 이유
+리액트 프로젝트의 진입점 파일(main.tsx 또는 index.tsx)에서 이 앱 전체를 가져다 브라우저 화면(root 태그)에 처음 꽂아 넣을 때, "우리 웹사이트의 진짜 본체는 바로 이 App 컴포넌트 하나다"라고 단일 대표 규격으로 넘겨주기 위해 export default로 내보낸 것입니다.
+
+리액트 사이트 (Single Page Application, SPA): 웹페이지 파일은 딱 하나(index.html)뿐입니다.이때 주소창에 /recruits라고 치거나 링크를 누르면, 
+"어? 주소가 /recruits로 바뀌었네? 그럼 가운데에 RecruitList 부품을 꽂아라!" 하고 길을 연결해 주는 것이 바로 라우터(Router)입니다.
+라우터 엔진 (<BrowserRouter>): 하는 일: 브라우저 주소창의 변화를 24시간 감시하는 '센서 엔진'입니다.
+*/
 export default function App() {
   return (
     <FilterProvider>

@@ -1,3 +1,5 @@
+// 컴포넌트의 모든 코드가 사실상 css설정들임. 그냥 RecruitFormPage.tsx에서 Input이나 이런식으로 대놓고 사용함.
+
 export default function Badge({ children, color = "blue" }) {
   const colors = {
     blue: "bg-blue-100 text-blue-700",
