@@ -45,7 +45,7 @@ export default function RecruitFormPage() {
             platform: data.platform || "Android",
             reward: data.reward || "",
             content: data.content || "",
-          });
+          }); // 여기서 데이터 채우란 의미.
         }
       } catch (err: any) {
         alert("공고 데이터를 불러오지 못했습니다: " + err.message);
@@ -57,6 +57,9 @@ export default function RecruitFormPage() {
 
     fetchDetail();
   }, [id, isEdit, navigate]);
+  //의존성 배열에 id가 적혀있지 않다면, 주소창이 2번 글로 바뀌어도 화면은 여전히 1번 글 데이터를 그대로 띄워두는 치명적인 버그가 생깁니다. [id]를 적어두면 "혹시라도 주소창의 글 번호가 1에서 2로 바뀌면,
+  // 새 글 번호(2번)로 DB 조회를 다시 실행해서 2번 글 내용으로 폼을 갈아끼워라" 하고 대비
+  //리액트 개발 도구에는 "함수 내부에서 사용하는 바깥 변수나 함수는 무조건 의존성 배열에 등록해야 한다"는 엄격한 감시 규칙(react-hooks/exhaustive-deps)이 기본으로 켜져 있습니다.
 
   const validate = () => {
     const errs: any = {};
@@ -81,27 +84,18 @@ export default function RecruitFormPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
     /*
     1줄: const handleChange = (e: any) => {
-
 handleChange라는 이름의 이벤트 처리 함수를 정의합니다.
-
 매개변수 e는 사용자가 타자를 치거나 드롭다운을 변경했을 때 브라우저가 자동으로 넘겨주는 '이벤트 객체'입니다.
 
 2줄: const { name, value } = e.target;
-
 구조 분해 할당을 사용해 이벤트가 발생한 입력창(e.target)에서 두 가지 핵심 정보를 꺼내옵니다.
-
 name: 어떤 입력창인지 식별하는 고유 이름입니다 (예: "title", "platform").
-
 value: 사용자가 방금 입력하거나 선택한 실제 텍스트 값입니다 (예: "개발자 모집", "iOS").
 
 3줄: setFormData((prev) => ({ ...prev, [name]: value }));
-
 부모의 데이터 저장소(formData)를 갱신합니다.
-
 (prev): 직전 상태의 장부 내용 전체를 뜻합니다.
-
 ...prev: 기존에 적혀 있던 다른 데이터들(예: 제목을 바꿀 때 기존의 보상, 플랫폼 데이터)이 날아가지 않도록 그대로 복사해 유지합니다.
-
 [name]: value: 방금 변경된 항목 딱 하나만 새로운 값으로 덮어씁니다. (name이 "title"이면 title: value가 됨)
     */
     if (errors[name]) {
@@ -110,16 +104,11 @@ value: 사용자가 방금 입력하거나 선택한 실제 텍스트 값입니�
   };
   /*
 4줄: if (errors[name]) {
-
 해당 입력창에 과거에 발생했던 '에러(유효성 검사 실패 메시지)'가 여전히 남아있는지 확인합니다.
-
 예: 사용자가 제목을 비워둬서 "제목을 입력하세요"라는 빨간 경고 라벨(errors.title)이 떠 있던 상태인지 체크합니다.
 상황 1: 실수로 필수 입력을 건너뛰고 [등록] 버튼을 누름
-
 사용자가 제목(title)과 보상(reward)을 모두 빈칸으로 둔 채 [등록하기] 버튼을 누릅니다.
-
 유효성 검사기(validate)가 돌면서 errors 장부에 빨간 딱지가 붙습니다:
-
 JavaScript
 errors = {
   title: "제목을 입력하세요",
@@ -128,19 +117,14 @@ errors = {
 화면의 제목 입력창과 보상 입력창 밑에 동시에 빨간 글씨 경고가 뜹니다.
 
 상황 2: 사용자가 제목 창에 키보드로 글자 'A'를 입력함
-
 제목 입력창에서 handleChange가 실행됩니다 (name = "title").
 
 4줄 if (errors["title"]) 검사:
-
 현재 errors["title"]에 "제목을 입력하세요"라는 글자가 들어있으므로 조건문이 true(참)가 됩니다.
 
 5줄 setErrors(...) 실행:
-
 ...prev: 아직 안 고친 reward: "보상을 입력하세요"는 그대로 둡니다.
-
 [name]: null: 방금 타자를 치기 시작한 title만 null로 바꿔버립니다.
-
 JavaScript
 // 갱신된 errors 결과
 errors = {
@@ -148,9 +132,7 @@ errors = {
   reward: "보상을 입력하세요" // 다른 에러는 그대로 유지
 };
 상황 3: 화면의 실시간 변화
-
 사용자가 제목에 글자 하나를 치는 즉시, 제목 밑에 떠 있던 "제목을 입력하세요" 빨간 경고 문구만 싹 사라집니다.
-
 아직 손대지 않은 보상 창의 "보상을 입력하세요" 경고는 그대로 남아있어, 사용자가 무엇을 마저 채워야 하는지 알려줍니다.
   */
 
@@ -328,4 +310,18 @@ setFormData가 실행되는 즉시 리액트 엔진이 작동하여 부모 컴�
 
 7단계: 새 데이터가 자식 화면에 반영 (value)
 새로 바뀐 formData.title("가") 값이 자식의 <Input value="{formData.title}"/> 프로퍼티로 내려꽂히면서, 사용자의 모니터 입력창 안에 최종적으로 글자 '가'가 유지되어 보이게 됩니다.
+*/
+
+/*
+실행 구조 - 첫 화면 진입 시점 (초기 렌더링)
+상태 및 모드 판별 (선언부)
+useParams()로 브라우저 주소창을 확인합니다.
+isEdit = Boolean(id): 주소에 id가 있으면 true(수정 모드), 없으면 false(신규 등록 모드)로 세팅합니다.
+formData, errors, submitting, loadingDetail(수정 모드면 true, 신규면 false) 상태 변수들을 생성합니다.
+조건부 로딩 분기 (if (loadingDetail))
+신규 등록: loadingDetail이 false이므로 즉시 맨 아래의 빈 폼 <form>을 화면에 그립니다.
+수정 모드: loadingDetail이 true이므로 아래 코드로 내려가지 않고 <Loading message="..."/> 화면을 먼저 띄웁니다.
+useEffect 발동 (화면이 그려진 직후)
+신규 등록: if (!isEdit) return;에 걸려 아무 일도 하지 않고 즉시 종료됩니다.
+수정 모드: fetchDetail() 비동기 함수가 작동하여 Supabase에서 해당 id의 글 데이터를 가져옵니다. 데이터를 가져오는 데 성공하면 setFormData로 입력창 데이터들을 채우고, finally에서 setLoadingDetail(false)를 호출합니다. 이에 따라 로딩 화면이 사라지고 기존 내용이 채워진 <form> 화면으로 다시 그려집니다.
 */

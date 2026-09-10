@@ -6,14 +6,14 @@ export function useRecruits() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+// 전부 들고오는 방식이라 너무 길면 일부만 들고오도록하는게 좋다고 함. 
   const fetchRecruits = async () => {
     try {
       setLoading(true); //"지금 데이터를 가져오는 중이야"라고 표시
       setError(null);  // 이전 에러발생 상황에 대한 데이터 일단 지워서 백지에서 시작
       const { data: recruits, error: fetchErr } = await supabase
         .from("recruits")
-        .select("*")
+        .select("*") ///* 대신 가져오고 싶은 컬럼 이름들을 쉼표(,)로 구분한 문자열로 적어주면, 지정한 항목만 골라서 가져옵니다.예시) id, title, platform, content, created_at, user_id
         .order("created_at", { ascending: false });
         //최신 공고가 위로 오도록 냉장고 내부를 먼저 정리한 뒤 가져
       if (fetchErr) throw fetchErr;
