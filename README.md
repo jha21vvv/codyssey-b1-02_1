@@ -3,7 +3,7 @@
 
 
 ### 2. 배포 링크 및 데모
-- 사용자가 즉시 접속해 볼 수 있는 실제 배포 URL(`[https://jha21vvv.github.io/]`)
+- 사용자가 즉시 접속해 볼 수 있는 실제 배포 URL(`[https://jha21vvv.github.io/codyssey-b1-02_1]`)
 
 
 ### 3. 핵심 기능 목록 (Features)**
