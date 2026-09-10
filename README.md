@@ -215,32 +215,32 @@ error: "혹시 마트 문이 닫혔나요? (에러)"
 ![alt text](image-5.png)
 
 ## 학습 목표 기반 대답
-- React에서 컴포넌트가 왜 필요한지, 그리고 본인이 어떤 기준으로 컴포넌트를 쪼갰는지 설명할 수 있다.
-> 화면의 UI와 로직을 레고 블록처럼 독립된 단위로 묶어 코드 재사용성을 높이고 유지보수를 쉽게 만들기 위해 필요
-> 재사용 가능한 공통 UI 단위: Button, Input, Select, Loading처럼 여러 화면에서 반복해서 쓰이는 기본 요소들을 공통 컴포넌트로 분리
-> 페이지 단위(라우트 단위): 브라우저 주소(URL)에 따라 교체되는 큰 화면 단위(RecruitList, RecruitDetail, RecruitFormPage)로 분리
-> 역할과 책임의 분리 (비즈니스 로직 분리): Supabase와 통신하여 데이터를 가져오고 에러를 처리하는 작업은 UI 컴포넌트 안에 두지 않고 useRecruits 같은 커스텀 훅으로 분리해 "화면을 그리는 역할"과 "데이터를 조달하는 역할"을 명확히 나눠
-- props와 state의 차이, 그리고 상태를 어디에 두었는지(상향/하향 흐름) 설명할 수 있다.
-> state: 컴포넌트 내부에서 생성하고 관리하며, 사용자의 입력이나 통신 결과에 따라 스스로 변경할 수 있는 데이터
-> props: 부모 컴포넌트가 자식 컴포넌트에게 전달해 주는 읽기 전용(Read-only) 데이터입니다. 자식은 넘겨받은 props를 직접 수정할 수 없음
->하향 흐름 (Props Drilling & State): 폼 입력 상태(formData)는 여러 자식 입력창들을 취합해 DB로 전송해야 하므로, 부모인 RecruitFormPage에 두고 자식인 Input 태그로 내려주는 방식
-> 상향 흐름 (이벤트 전달): 자식이 부모의 상태를 바꾸기 위해 직접 값을 조작하지 않고, 부모가 내려준 onChange={handleChange} 같은 이벤트 핸들러 함수를 실행해 부모에게 "입력값이 바뀌었다"고 신호만 올려보냄
-> 전역 상태 (Context API): 상세 페이지로 이동했다가 목록으로 뒤로 가기를 눌러도 검색어와 플랫폼 필터가 초기화되지 않도록, 페이지 컴포넌트의 수명보다 상위인 FilterProvider에 전역 상태로 끌어올려 배치
-- useEffect가 언제 실행되고, 어떤 의존성으로 동작하며, 데이터 요청과 어떤 관계가 있는지 설명할 수 있다.
-> 실행 타이밍: 컴포넌트가 브라우저 화면에 렌더링을 마친 직후(DOM 반영 완료 후) 백그라운드에서 실행
-> 의존성 배열(Dependency Array):대괄호 [] 안에 감시할 변수를 지정. 배열 안의 값이 이전 렌더링 시점과 비교해 달라졌을 때만 내부 코드를 다시 실행
-> 네트워크를 통해 서버/DB에서 데이터를 가져오는 작업은 브라우저 렌더링을 멈추게 하면 안 되는 부수 효과. 컴포넌트가 화면을 먼저 띄운 뒤 useEffect를 통해 비동기(async/await)로 Supabase 데이터를 요청
-- 비동기 흐름에서 로딩/성공/실패/빈 상태를 React UI로 어떻게 표현했는지 설명할 수 있다.
-> 로딩 (Loading): 데이터를 가져오는 동안 loading: true 또는 loadingDetail: true 상태를 감지하여 스피너나 <Loading message="..."/> 안내 화면을 띄워 사용자에게 통신 중임
-> 성공 (Success): DB 조회가 성공하면 loading: false로 전환하고, setData(recruits) 또는 setFormData(...)를 실행하여 받아온 실제 공고 카드와 입력창 화면을 정상 출력
->실패 (Error): 네트워크 끊김이나 DB 에러가 발생하면 try-catch 문의 catch 블록에서 에러를 잡아 setError(err.message) 또는 알림창을 띄우고, 준비해 둔 ErrorState UI나 목록 페이지 강제 이동(navigate)으로 복구 경로를 제공
-> 빈 상태 (Empty): 에러는 없지만 검색 결과나 등록된 공고가 0개일 때(recruits.length === 0), 텅 빈 흰 화면 대신 "등록된 공고가 없습니다"라는 전용 Empty State 안내 문구를 표시
-- “하나의 기능”을 만들기 위해 라우팅 → 컴포넌트 → 상태 → 이벤트 → 렌더링이 어떻게 연결되는지 설명할 수 있다.
-> <<<<공고 등록/수정 기능 기준>>>>
-> 라우팅: 사용자가 신규 등록 링크(/recruits/new)나 수정 링크(/recruits/1/edit)를 클릭하면 BrowserRouter가 URL을 감지해 RecruitFormPage 컴포넌트를 마운트
-> 컴포넌트: RecruitFormPage가 호출되며 URL의 파라미터(useParams)를 통해 신규(isEdit = false)인지 수정(isEdit = true)인지 모드를 판별합니다.
-> 상태: 수정 모드인 경우 useEffect가 실행되어 Supabase에서 기존 글을 조회해 formData 상태에 채우고, 신규인 경우 빈 상태로 시작합니다.
-> 이벤트 (Event):사용자가 입력창에 글자를 칠 때마다 onChange 이벤트가 발생하고 handleChange 함수가 실행되어 setFormData를 통해 입력값을 실시간 동기화하며 에러 표시를 지웁니다.
-> 렌더링 & 제출 (Rendering & Submit):입력된 값이 인풋의 value에 실시간으로 반영되어 화면에 그려집니다.[저장] 버튼을 누르면 onSubmit 이벤트가 handleSubmit을 호출해 클라이언트 유효성 검사(validate)를 거친 뒤, Supabase에 insert 또는 update를 비동기 전송하고 성공 시 상세 페이지로 라우팅을 이동시키며 기능의 라이프사이클을 완성합니다.
+# React에서 컴포넌트가 왜 필요한지, 그리고 본인이 어떤 기준으로 컴포넌트를 쪼갰는지 설명할 수 있다.
+- 화면의 UI와 로직을 레고 블록처럼 독립된 단위로 묶어 코드 재사용성을 높이고 유지보수를 쉽게 만들기 위해 필요
+- 재사용 가능한 공통 UI 단위: Button, Input, Select, Loading처럼 여러 화면에서 반복해서 쓰이는 기본 요소들을 공통 컴포넌트로 분리
+- 페이지 단위(라우트 단위): 브라우저 주소(URL)에 따라 교체되는 큰 화면 단위(RecruitList, RecruitDetail, RecruitFormPage)로 분리
+- 역할과 책임의 분리 (비즈니스 로직 분리): Supabase와 통신하여 데이터를 가져오고 에러를 처리하는 작업은 UI 컴포넌트 안에 두지 않고 useRecruits 같은 커스텀 훅으로 분리해 "화면을 그리는 역할"과 "데이터를 조달하는 역할"을 명확히 나눠
+# props와 state의 차이, 그리고 상태를 어디에 두었는지(상향/하향 흐름) 설명할 수 있다.
+- state: 컴포넌트 내부에서 생성하고 관리하며, 사용자의 입력이나 통신 결과에 따라 스스로 변경할 수 있는 데이터
+- props: 부모 컴포넌트가 자식 컴포넌트에게 전달해 주는 읽기 전용(Read-only) 데이터입니다. 자식은 넘겨받은 props를 직접 수정할 수 없음
+-하향 흐름 (Props Drilling & State): 폼 입력 상태(formData)는 여러 자식 입력창들을 취합해 DB로 전송해야 하므로, 부모인 RecruitFormPage에 두고 자식인 Input 태그로 내려주는 방식
+- 상향 흐름 (이벤트 전달): 자식이 부모의 상태를 바꾸기 위해 직접 값을 조작하지 않고, 부모가 내려준 onChange={handleChange} 같은 이벤트 핸들러 함수를 실행해 부모에게 "입력값이 바뀌었다"고 신호만 올려보냄
+- 전역 상태 (Context API): 상세 페이지로 이동했다가 목록으로 뒤로 가기를 눌러도 검색어와 플랫폼 필터가 초기화되지 않도록, 페이지 컴포넌트의 수명보다 상위인 FilterProvider에 전역 상태로 끌어올려 배치
+# useEffect가 언제 실행되고, 어떤 의존성으로 동작하며, 데이터 요청과 어떤 관계가 있는지 설명할 수 있다.
+- 실행 타이밍: 컴포넌트가 브라우저 화면에 렌더링을 마친 직후(DOM 반영 완료 후) 백그라운드에서 실행
+- 의존성 배열(Dependency Array):대괄호 [] 안에 감시할 변수를 지정. 배열 안의 값이 이전 렌더링 시점과 비교해 달라졌을 때만 내부 코드를 다시 실행
+- 네트워크를 통해 서버/DB에서 데이터를 가져오는 작업은 브라우저 렌더링을 멈추게 하면 안 되는 부수 효과. 컴포넌트가 화면을 먼저 띄운 뒤 useEffect를 통해 비동기(async/await)로 Supabase 데이터를 요청
+# 비동기 흐름에서 로딩/성공/실패/빈 상태를 React UI로 어떻게 표현했는지 설명할 수 있다.
+- 로딩 (Loading): 데이터를 가져오는 동안 loading: true 또는 loadingDetail: true 상태를 감지하여 스피너나 <Loading message="..."/> 안내 화면을 띄워 사용자에게 통신 중임
+- 성공 (Success): DB 조회가 성공하면 loading: false로 전환하고, setData(recruits) 또는 setFormData(...)를 실행하여 받아온 실제 공고 카드와 입력창 화면을 정상 출력
+- 실패 (Error): 네트워크 끊김이나 DB 에러가 발생하면 try-catch 문의 catch 블록에서 에러를 잡아 setError(err.message) 또는 알림창을 띄우고, 준비해 둔 ErrorState UI나 목록 페이지 강제 이동(navigate)으로 복구 경로를 제공
+- 빈 상태 (Empty): 에러는 없지만 검색 결과나 등록된 공고가 0개일 때(recruits.length === 0), 텅 빈 흰 화면 대신 "등록된 공고가 없습니다"라는 전용 Empty State 안내 문구를 표시
+# “하나의 기능”을 만들기 위해 라우팅 → 컴포넌트 → 상태 → 이벤트 → 렌더링이 어떻게 연결되는지 설명할 수 있다.
+- <<<<공고 등록/수정 기능 기준>>>>
+- 라우팅: 사용자가 신규 등록 링크(/recruits/new)나 수정 링크(/recruits/1/edit)를 클릭하면 BrowserRouter가 URL을 감지해 RecruitFormPage 컴포넌트를 마운트
+- 컴포넌트: RecruitFormPage가 호출되며 URL의 파라미터(useParams)를 통해 신규(isEdit = false)인지 수정(isEdit = true)인지 모드를 판별합니다.
+- 상태: 수정 모드인 경우 useEffect가 실행되어 Supabase에서 기존 글을 조회해 formData 상태에 채우고, 신규인 경우 빈 상태로 시작합니다.
+- 이벤트 (Event):사용자가 입력창에 글자를 칠 때마다 onChange 이벤트가 발생하고 handleChange 함수가 실행되어 setFormData를 통해 입력값을 실시간 동기화하며 에러 표시를 지웁니다.
+- 렌더링 & 제출 (Rendering & Submit):입력된 값이 인풋의 value에 실시간으로 반영되어 화면에 그려집니다.[저장] 버튼을 누르면 onSubmit 이벤트가 handleSubmit을 호출해 클라이언트 유효성 검사(validate)를 거친 뒤, Supabase에 insert 또는 update를 비동기 전송하고 성공 시 상세 페이지로 라우팅을 이동시키며 기능의 라이프사이클을 완성합니다.
 ```
 ```
